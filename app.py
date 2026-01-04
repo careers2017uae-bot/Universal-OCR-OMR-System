@@ -8,7 +8,11 @@ Author: Senior HCI & Software Engineering Architecture
 import streamlit as st
 import pytesseract
 from PIL import Image
-import cv2
+try:
+    import cv2
+except ImportError:
+    cv2 = None
+
 import numpy as np
 import requests
 from docx import Document
