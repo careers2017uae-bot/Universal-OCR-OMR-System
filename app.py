@@ -1,18 +1,17 @@
 # app.py
 """
-Universal OCR + OMR (Cloud-Safe Version)
-No OpenCV | PIL-only | Streamlit Cloud Compatible
+Universal OCR + OMR System
+Cloud-Native | Jina Vision OCR | Production-Safe
 """
 
 import streamlit as st
-import pytesseract
-from PIL import Image, ImageOps, ImageFilter
-import numpy as np
+from PIL import Image
 import requests
 from docx import Document
 from fpdf import FPDF
 import tempfile
 import os
+import base64
 
 # ---------------- CONFIG ----------------
 
@@ -24,10 +23,12 @@ st.set_page_config(
 
 JINA_API_KEY = st.secrets.get("JINA_API_KEY", "")
 
+JINA_VISION_OCR_ENDPOINT = "https://api.jina.ai/v1/vision/ocr"
+
 # ---------------- UI ----------------
 
 st.title("📄 Universal OCR & OMR System")
-st.caption("Handwriting • Multilingual • Cloud-Safe OCR")
+st.caption("Multilingual • Handwriting • Cloud-Native AI OCR")
 
 uploaded_file = st.file_uploader(
     "📷 Upload scanned image or camera photo",
@@ -39,49 +40,37 @@ process_btn = st.button("🚀 Process Document")
 
 # ---------------- FUNCTIONS ----------------
 
-def preprocess_image(image: Image.Image) -> Image.Image:
-    """
-    PIL-based preprocessing (cloud-safe)
-    """
-    image = ImageOps.grayscale(image)
-    image = ImageOps.autocontrast(image)
-    image = image.filter(ImageFilter.MedianFilter())
-    return image
+def jina_vision_ocr(image: Image.Image) -> str:
+    if not JINA_API_KEY:
+        st.error("JINA_API_KEY not configured in Streamlit secrets.")
+        st.stop()
 
-def extract_text(image: Image.Image) -> str:
-    """
-    OCR extraction using Tesseract
-    """
-    return pytesseract.image_to_string(
-        image,
-        lang="eng+urd+ara+fra+deu+spa"
+    buffered = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
+    image.save(buffered.name)
+
+    with open(buffered.name, "rb") as f:
+        image_bytes = f.read()
+
+    encoded = base64.b64encode(image_bytes).decode()
+
+    headers = {
+        "Authorization": f"Bearer {JINA_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "image": encoded
+    }
+
+    response = requests.post(
+        JINA_VISION_OCR_ENDPOINT,
+        headers=headers,
+        json=payload,
+        timeout=30
     )
 
-def jina_refine_text(text: str) -> str:
-    """
-    Optional semantic cleanup (safe fallback)
-    """
-    if not JINA_API_KEY:
-        return text
-
-    try:
-        headers = {
-            "Authorization": f"Bearer {JINA_API_KEY}",
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "model": "jina-embeddings-v2-base-en",
-            "input": text
-        }
-        requests.post(
-            "https://api.jina.ai/v1/embeddings",
-            headers=headers,
-            json=payload,
-            timeout=10
-        )
-        return text
-    except Exception:
-        return text
+    response.raise_for_status()
+    return response.json().get("text", "")
 
 def generate_docx(text: str) -> str:
     doc = Document()
@@ -107,18 +96,16 @@ def generate_pdf(text: str) -> str:
 # ---------------- PIPELINE ----------------
 
 if process_btn and uploaded_file:
-    with st.spinner("🔍 Processing document..."):
+    with st.spinner("🔍 Performing AI OCR..."):
         image = Image.open(uploaded_file)
-        image = preprocess_image(image)
-        raw_text = extract_text(image)
-        refined_text = jina_refine_text(raw_text)
+        extracted_text = jina_vision_ocr(image)
 
         if output_format == "Word (.docx)":
-            output_path = generate_docx(refined_text)
+            output_path = generate_docx(extracted_text)
         else:
-            output_path = generate_pdf(refined_text)
+            output_path = generate_pdf(extracted_text)
 
-        st.success("✅ Processing Complete")
+        st.success("✅ OCR Completed Successfully")
 
         with open(output_path, "rb") as f:
             st.download_button(
@@ -127,4 +114,4 @@ if process_btn and uploaded_file:
                 file_name=os.path.basename(output_path)
             )
 
-st.caption("Built with Human-Centered Design & Production-Grade Engineering")
+st.caption("Built with Cloud-Native AI & Human-Centered Design")
