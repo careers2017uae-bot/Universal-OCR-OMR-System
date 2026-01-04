@@ -1,8 +1,7 @@
 streamlit
 pytesseract
-opencv-python-headless
-numpy
 Pillow
+numpy
 python-docx
 fpdf
 requests
