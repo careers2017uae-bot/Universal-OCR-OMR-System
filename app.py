@@ -54,10 +54,13 @@ process_btn = st.button("🚀 Process Document")
 # ---------------------- CORE FUNCTIONS ----------------------
 
 def preprocess_image(image):
-    """Enhances OCR accuracy"""
+    if cv2 is None:
+        return np.array(image)
+
     img = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2GRAY)
     img = cv2.threshold(img, 150, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
     return img
+
 
 def extract_text(image):
     """OCR extraction"""
