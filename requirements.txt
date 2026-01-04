@@ -1,4 +1,9 @@
 streamlit
+Pillow
+requests
+python-docx
+fpdf
+streamlit
 pytesseract
 Pillow
 numpy
