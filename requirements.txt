@@ -1,12 +1,32 @@
-streamlit
-Pillow
-requests
-python-docx
-fpdf
-streamlit
-pytesseract
-Pillow
-numpy
-python-docx
-fpdf
-requests
+# Core Dependencies
+streamlit==1.29.0
+Pillow==10.1.0
+torch==2.1.0
+transformers==4.36.0
+opencv-python==4.8.1.78
+python-docx==1.1.0
+fpdf==1.7.2
+numpy==1.24.3
+
+# Optional for Enhanced Features (uncomment if needed)
+# PyPDF2==3.0.1  # For PDF text extraction
+# reportlab==4.0.4  # For advanced PDF generation
+# pdf2image==1.16.3  # For PDF to image conversion
+# paddleocr==2.7.0  # Alternative OCR engine (Chinese/Japanese support)
+# easyocr==1.7.1  # For additional language support
+# google-cloud-vision==3.4.4  # Google Cloud Vision API
+
+# Development Dependencies
+black==23.11.0
+flake8==6.1.0
+pytest==7.4.3
+
+# Platform-Specific Notes:
+# For GPU support, install appropriate torch version:
+# CUDA 11.8: pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu118
+# CPU only: pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cpu
+
+# Streamlit Cloud Deployment Notes:
+# Add these to your secrets.toml in .streamlit folder:
+# JINA_API_KEY = "your_jina_key_here"  # Optional fallback
+# GOOGLE_APPLICATION_CREDENTIALS = "gcp_credentials.json"  # For Google Vision
